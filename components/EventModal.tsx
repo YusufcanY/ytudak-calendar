@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { YtudakEvent } from "@/types";
 import { getEventColors } from "@/lib/eventColors";
 import { useSheetDrag } from "@/lib/useSheetDrag";
@@ -38,28 +38,58 @@ function formatDateRange(event: YtudakEvent): string {
   return `${start} – ${end}`;
 }
 
+// Matches the longest exit animation in globals.css (.modal-backdrop-out).
+const EXIT_MS = 200;
+
 export function EventModal({ event, onClose }: EventModalProps) {
   const colors = getEventColors(event.type);
-  const sheetRef = useSheetDrag<HTMLDivElement>(onClose);
   const sessions = getSessions(event);
+
+  // "animated": play the exit animation. "dragged": the sheet was already
+  // swiped off-screen by useSheetDrag, so only the backdrop fades out.
+  const [closing, setClosing] = useState<null | "animated" | "dragged">(null);
+  const close = useCallback(() => setClosing((c) => c ?? "animated"), []);
+  const sheetRef = useSheetDrag<HTMLDivElement>(
+    useCallback(() => setClosing((c) => c ?? "dragged"), []),
+  );
+
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
+  useEffect(() => {
+    if (!closing) return;
+    const id = setTimeout(() => onCloseRef.current(), EXIT_MS);
+    return () => clearTimeout(id);
+  }, [closing]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") close();
     };
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
-  }, [onClose]);
+  }, [close]);
+
+  const sheetAnimation =
+    closing === "animated"
+      ? "modal-sheet-out"
+      : closing === "dragged"
+        ? ""
+        : "modal-sheet-in";
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 ${
+        closing ? "modal-backdrop-out pointer-events-none" : ""
+      }`}
       style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(4px)" }}
-      onClick={onClose}
+      onClick={close}
     >
       <div
         ref={sheetRef}
-        className="animate-sheetUp sm:animate-slideUp relative max-w-md w-full max-h-[85vh] overflow-y-auto overscroll-contain rounded-t-2xl sm:rounded-xl shadow-2xl pb-[env(safe-area-inset-bottom)]"
+        className={`${sheetAnimation} relative max-w-md w-full max-h-[85vh] overflow-y-auto overscroll-contain rounded-t-2xl sm:rounded-xl shadow-2xl pb-[env(safe-area-inset-bottom)]`}
         style={{
           background: "var(--bg-card)",
           border: "1px solid var(--border)",
@@ -107,7 +137,7 @@ export function EventModal({ event, onClose }: EventModalProps) {
               </h2>
             </div>
             <button
-              onClick={onClose}
+              onClick={close}
               aria-label="Kapat"
               className="shrink-0 w-10 h-10 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-colors hover:opacity-80"
               style={{

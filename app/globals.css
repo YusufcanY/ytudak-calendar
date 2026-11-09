@@ -141,6 +141,55 @@ main {
   .animate-sheetUp {
     animation: sheetUp 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
+
+  /* Event modal: bottom sheet on mobile, centered card from sm (640px) up.
+     Plain media queries because `sm:` variants don't apply to @layer classes. */
+  .modal-backdrop-out {
+    animation: fadeOut 0.2s ease forwards;
+  }
+  .modal-sheet-in {
+    animation: sheetUp 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .modal-sheet-out {
+    animation: sheetDown 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+  @media (min-width: 640px) {
+    .modal-sheet-in {
+      animation: slideUp 0.2s ease forwards;
+    }
+    .modal-sheet-out {
+      animation: slideDown 0.15s ease forwards;
+    }
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes sheetDown {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
 }
 
 @keyframes fadeIn {
