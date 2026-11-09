@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { YtudakEvent } from "@/types";
 import { getEventColors } from "@/lib/eventColors";
 import { useSheetDrag } from "@/lib/useSheetDrag";
-import { TURKISH_MONTHS, parseDate } from "@/lib/calendar";
+import { formatDateRange } from "@/lib/eventFormat";
 import { getSessions } from "@/data/events";
 import { canExport } from "@/lib/calendarExport";
 import { AddToCalendar, AddSessionToCalendar } from "./AddToCalendar";
@@ -13,29 +13,6 @@ import { DirectionsButton } from "./DirectionsButton";
 interface EventModalProps {
   event: YtudakEvent;
   onClose: () => void;
-}
-
-function formatDate(iso: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  return `${d} ${TURKISH_MONTHS[m - 1]} ${y}`;
-}
-
-const TURKISH_WEEKDAYS = [
-  "Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi",
-];
-
-function weekday(iso: string): string {
-  return TURKISH_WEEKDAYS[parseDate(iso).getDay()];
-}
-
-function formatDateRange(event: YtudakEvent): string {
-  if (!event.startDate) return event.approxDate ?? "Tarih kesinleşmedi";
-  const start = formatDate(event.startDate);
-  if (!event.endDate || event.startDate === event.endDate) {
-    return `${start}, ${weekday(event.startDate)}`;
-  }
-  const end = formatDate(event.endDate);
-  return `${start} – ${end}`;
 }
 
 // Matches the longest exit animation in globals.css (.modal-backdrop-out).
