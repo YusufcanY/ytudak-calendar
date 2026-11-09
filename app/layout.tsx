@@ -10,8 +10,9 @@ export const metadata: Metadata = {
   },
 };
 
+// `||` (not `??`): Docker sets unset build args to "", which must fall back too.
 const UMAMI_WEBSITE_ID =
-  process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID ??
+  process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID ||
   "9b69bd8e-6e69-4c77-a248-6f4880a776fe";
 
 export default function RootLayout({
@@ -22,14 +23,12 @@ export default function RootLayout({
   return (
     <html lang="tr" className="h-full">
       <head>
-        {UMAMI_WEBSITE_ID && (
-          <script
-            defer
-            src="/stats/script.js"
-            data-website-id={UMAMI_WEBSITE_ID}
-            data-host-url="/stats"
-          />
-        )}
+        <script
+          defer
+          src="/stats/script.js"
+          data-website-id={UMAMI_WEBSITE_ID}
+          data-host-url="/stats"
+        />
       </head>
       <body className="min-h-full">{children}</body>
     </html>

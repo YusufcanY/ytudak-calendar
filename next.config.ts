@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
+// `||` (not `??`): Docker sets unset build args to "", which must fall back too.
 const UMAMI_HOST =
-  process.env.UMAMI_HOST ?? "https://rezervet-umami.3qidgo.easypanel.host";
+  process.env.UMAMI_HOST || "https://rezervet-umami.3qidgo.easypanel.host";
 
 const nextConfig: NextConfig = {
   output: "standalone",
