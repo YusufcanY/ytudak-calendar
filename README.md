@@ -34,15 +34,12 @@ npm run dev
 
 | Variable | When | Purpose |
 | --- | --- | --- |
-| `UMAMI_HOST` | build | Umami server URL used by the `/stats/*` rewrites |
-| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | build | Umami website ID. If unset, no tracking script is rendered. |
+| `UMAMI_HOST` | build | Umami server URL used by the `/stats/*` rewrites. Defaults to `https://rezervet-umami.3qidgo.easypanel.host` |
+| `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | build | Umami website ID. Defaults to the YTÜDAK site `9b69bd8e-6e69-4c77-a248-6f4880a776fe` |
 
 ## Docker
 
 ```bash
-docker build \
-  --build-arg UMAMI_HOST=https://umami.example.com \
-  --build-arg NEXT_PUBLIC_UMAMI_WEBSITE_ID=<id> \
-  -t ytudak-calendar .
+docker build -t ytudak-calendar .
 docker run -p 5050:5050 ytudak-calendar
 ```

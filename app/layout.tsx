@@ -10,7 +10,9 @@ export const metadata: Metadata = {
   },
 };
 
-const UMAMI_WEBSITE_ID = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
+const UMAMI_WEBSITE_ID =
+  process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID ??
+  "9b69bd8e-6e69-4c77-a248-6f4880a776fe";
 
 export default function RootLayout({
   children,

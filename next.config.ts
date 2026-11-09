@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
-const UMAMI_HOST = process.env.UMAMI_HOST;
+const UMAMI_HOST =
+  process.env.UMAMI_HOST ?? "https://rezervet-umami.3qidgo.easypanel.host";
 
 const nextConfig: NextConfig = {
   output: "standalone",
