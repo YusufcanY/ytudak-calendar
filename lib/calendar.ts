@@ -152,3 +152,33 @@ export function clampToRange(date: Date): Date {
   if (date > CALENDAR_END) return new Date(CALENDAR_END);
   return date;
 }
+
+export const TURKISH_DAYS_LONG = [
+  "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar",
+];
+
+/** Weekday index with Monday = 0 … Sunday = 6. */
+export function mondayIndex(date: Date): number {
+  const d = date.getDay();
+  return d === 0 ? 6 : d - 1;
+}
+
+export interface DateGroup {
+  iso: string;
+  date: Date;
+  events: YtudakEvent[];
+}
+
+/** Groups scheduled events by start date, sorted ascending. */
+export function groupEventsByStartDate(events: YtudakEvent[]): DateGroup[] {
+  const map = new Map<string, YtudakEvent[]>();
+  for (const e of events) {
+    if (!e.startDate) continue;
+    const list = map.get(e.startDate);
+    if (list) list.push(e);
+    else map.set(e.startDate, [e]);
+  }
+  return [...map.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([iso, evs]) => ({ iso, date: parseDate(iso), events: evs }));
+}

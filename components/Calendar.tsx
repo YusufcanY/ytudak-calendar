@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { YtudakEvent } from "@/types";
 import {
   getCalendarWeeks,
@@ -12,6 +12,10 @@ import {
   TURKISH_DAYS_SHORT,
 } from "@/lib/calendar";
 import { EventChip } from "./EventChip";
+import { MobileCalendar, type MobileView } from "./MobileCalendar";
+import { trackEvent } from "@/lib/analytics";
+
+const VIEW_STORAGE_KEY = "ytudak-mobile-view";
 
 interface CalendarProps {
   year: number;
@@ -20,6 +24,7 @@ interface CalendarProps {
   onEventClick: (event: YtudakEvent) => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
+  onToday: () => void;
 }
 
 
@@ -30,6 +35,7 @@ export function Calendar({
   onEventClick,
   onPrevMonth,
   onNextMonth,
+  onToday,
 }: CalendarProps) {
   const weeks = getCalendarWeeks(year, month);
   const today = isoDate(new Date());
@@ -45,6 +51,56 @@ export function Calendar({
   const canGoNext =
     monthIndex < CALENDAR_END.getFullYear() * 12 + CALENDAR_END.getMonth();
 
+  const [view, setView] = useState<MobileView>("month");
+  const [selectedIso, setSelectedIso] = useState<string | null>(null);
+  const [scrollSignal, setScrollSignal] = useState(0);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(VIEW_STORAGE_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (saved === "month" || saved === "list") setView(saved);
+    } catch {
+      /* storage unavailable */
+    }
+  }, []);
+
+  const changeView = (next: MobileView) => {
+    if (next === view) return;
+    setView(next);
+    trackEvent("mobile-view-change", { view: next });
+    try {
+      localStorage.setItem(VIEW_STORAGE_KEY, next);
+    } catch {
+      /* storage unavailable */
+    }
+  };
+
+  // Selected day for the mobile month view: keep the user's pick if it is in
+  // the displayed month, otherwise today, the first day with events, or the 1st.
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, "0")}-`;
+  const effectiveSelectedIso =
+    selectedIso?.startsWith(monthPrefix)
+      ? selectedIso
+      : today.startsWith(monthPrefix)
+        ? today
+        : (() => {
+            const firstWithEvents = weeks
+              .flat()
+              .find(
+                (d) => d.getMonth() === month && getEventsForDay(d).length > 0,
+              );
+            return firstWithEvents
+              ? isoDate(firstWithEvents)
+              : `${monthPrefix}01`;
+          })();
+
+  const handleToday = () => {
+    onToday();
+    setSelectedIso(today);
+    setScrollSignal((n) => n + 1);
+  };
+
   return (
     <div className="animate-fadeIn">
       {/* Month nav header */}
@@ -58,7 +114,8 @@ export function Calendar({
         <button
           onClick={onPrevMonth}
           disabled={!canGoPrev}
-          className="w-9 h-9 rounded-lg flex items-center justify-center transition-all font-display text-lg font-bold"
+          aria-label="Önceki ay"
+          className={`${view === "list" ? "invisible sm:visible" : ""} w-10 h-10 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center transition-all font-display text-lg font-bold`}
           style={{
             background: canGoPrev ? "var(--bg-cell)" : "transparent",
             color: canGoPrev ? "var(--text-primary)" : "var(--text-dim)",
@@ -74,7 +131,16 @@ export function Calendar({
             className="font-display font-bold tracking-wider"
             style={{ color: "var(--text-primary)", fontSize: "22px" }}
           >
-            {TURKISH_MONTHS[month].toUpperCase()}
+            {view === "list" ? (
+              <>
+                <span className="sm:hidden">TÜM ETKİNLİKLER</span>
+                <span className="hidden sm:inline">
+                  {TURKISH_MONTHS[month].toUpperCase()}
+                </span>
+              </>
+            ) : (
+              TURKISH_MONTHS[month].toUpperCase()
+            )}
           </h2>
           <p
             className="font-mono text-xs tracking-widest"
@@ -87,7 +153,8 @@ export function Calendar({
         <button
           onClick={onNextMonth}
           disabled={!canGoNext}
-          className="w-9 h-9 rounded-lg flex items-center justify-center transition-all font-display text-lg font-bold"
+          aria-label="Sonraki ay"
+          className={`${view === "list" ? "invisible sm:visible" : ""} w-10 h-10 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center transition-all font-display text-lg font-bold`}
           style={{
             background: canGoNext ? "var(--bg-cell)" : "transparent",
             color: canGoNext ? "var(--text-primary)" : "var(--text-dim)",
@@ -99,8 +166,74 @@ export function Calendar({
         </button>
       </div>
 
-      {/* Calendar grid */}
-      <div className="overflow-x-auto">
+      {/* Mobile toolbar: today + view toggle */}
+      <div className="sm:hidden flex items-center justify-between gap-2 mb-3">
+        <button
+          type="button"
+          onClick={handleToday}
+          className="px-3.5 h-9 rounded-lg text-sm font-display font-bold tracking-wide cursor-pointer"
+          style={{
+            background: "var(--bg-card)",
+            border: "1px solid var(--border)",
+            color: "var(--text-primary)",
+          }}
+        >
+          Bugün
+        </button>
+        <div
+          role="tablist"
+          aria-label="Görünüm"
+          className="flex items-center gap-0.5 p-0.5 rounded-lg"
+          style={{
+            background: "var(--bg-card)",
+            border: "1px solid var(--border)",
+          }}
+        >
+          {(
+            [
+              ["month", "Ay"],
+              ["list", "Liste"],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              aria-selected={view === value}
+              onClick={() => changeView(value)}
+              className="px-4 h-8 rounded-md text-sm font-display tracking-wide cursor-pointer transition-all"
+              style={
+                view === value
+                  ? { background: "var(--accent)", color: "#ffffff", fontWeight: 700 }
+                  : { color: "var(--text-muted)", fontWeight: 500 }
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Mobile calendar */}
+      <div className="sm:hidden">
+        <MobileCalendar
+          year={year}
+          month={month}
+          events={events}
+          view={view}
+          selectedIso={effectiveSelectedIso}
+          onSelectDate={setSelectedIso}
+          onEventClick={onEventClick}
+          onPrevMonth={onPrevMonth}
+          onNextMonth={onNextMonth}
+          canGoPrev={canGoPrev}
+          canGoNext={canGoNext}
+          scrollSignal={scrollSignal}
+        />
+      </div>
+
+      {/* Calendar grid (desktop) */}
+      <div className="hidden sm:block overflow-x-auto">
       <div
         className="rounded-xl overflow-hidden"
         style={{ border: "1px solid var(--border)", minWidth: "560px" }}

@@ -177,6 +177,7 @@ export default function Page() {
           onEventClick={handleSelectEvent}
           onPrevMonth={() => setCurrentDate((d) => addMonths(d, -1))}
           onNextMonth={() => setCurrentDate((d) => addMonths(d, 1))}
+          onToday={() => setCurrentDate(clampToRange(new Date()))}
         />
 
         {/* TBD Events */}

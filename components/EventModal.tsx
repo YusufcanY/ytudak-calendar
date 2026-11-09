@@ -51,12 +51,12 @@ export function EventModal({ event, onClose }: EventModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
       style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(4px)" }}
       onClick={onClose}
     >
       <div
-        className="animate-slideUp relative max-w-md w-full rounded-xl overflow-hidden shadow-2xl"
+        className="animate-sheetUp sm:animate-slideUp relative max-w-md w-full max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-xl shadow-2xl pb-[env(safe-area-inset-bottom)]"
         style={{
           background: "var(--bg-card)",
           border: "1px solid var(--border)",
@@ -65,8 +65,15 @@ export function EventModal({ event, onClose }: EventModalProps) {
       >
         {/* Color accent bar */}
         <div className="h-1 w-full" style={{ background: colors.dot }} />
+        {/* Grab handle (mobile) */}
+        <div className="sm:hidden flex justify-center pt-2">
+          <span
+            className="w-10 h-1 rounded-full"
+            style={{ background: "var(--border)" }}
+          />
+        </div>
 
-        <div className="p-6">
+        <div className="p-5 sm:p-6">
           {/* Header */}
           <div className="flex items-start justify-between gap-3 mb-5">
             <div className="flex-1 min-w-0">
@@ -98,7 +105,8 @@ export function EventModal({ event, onClose }: EventModalProps) {
             </div>
             <button
               onClick={onClose}
-              className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:opacity-80"
+              aria-label="Kapat"
+              className="shrink-0 w-10 h-10 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-colors hover:opacity-80"
               style={{
                 background: "var(--bg-cell)",
                 color: "var(--text-muted)",
