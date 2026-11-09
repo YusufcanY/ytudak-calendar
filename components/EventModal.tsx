@@ -5,6 +5,9 @@ import type { YtudakEvent } from "@/types";
 import { getEventColors } from "@/lib/eventColors";
 import { TURKISH_MONTHS, parseDate } from "@/lib/calendar";
 import { getSessions } from "@/data/events";
+import { canExport } from "@/lib/calendarExport";
+import { AddToCalendar, AddSessionToCalendar } from "./AddToCalendar";
+import { DirectionsButton } from "./DirectionsButton";
 
 interface EventModalProps {
   event: YtudakEvent;
@@ -117,9 +120,17 @@ export function EventModal({ event, onClose }: EventModalProps) {
           >
             {sessions.length > 1 ? (
               <Row label="Oturumlar">
-                <div className="flex flex-col gap-2">
-                  {sessions.map((s) => (
-                    <div key={s.id} className="flex flex-col">
+                <div className="flex flex-col gap-3">
+                  {sessions.map((s, i) => (
+                    <div
+                      key={s.id}
+                      className="flex flex-col"
+                      style={
+                        i > 0
+                          ? { borderTop: "1px solid var(--border-dim)", paddingTop: "12px" }
+                          : undefined
+                      }
+                    >
                       <span
                         className="text-sm"
                         style={{
@@ -136,6 +147,8 @@ export function EventModal({ event, onClose }: EventModalProps) {
                       >
                         {s.location}
                       </span>
+                      {s.location && <DirectionsButton location={s.location} />}
+                      <AddSessionToCalendar event={s} />
                     </div>
                   ))}
                 </div>
@@ -164,14 +177,21 @@ export function EventModal({ event, onClose }: EventModalProps) {
                 )}
                 {event.location && (
                   <Row label="Yer">
-                    <span className="text-sm" style={{ color: "var(--text-primary)" }}>
-                      {event.location}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-sm" style={{ color: "var(--text-primary)" }}>
+                        {event.location}
+                      </span>
+                      <DirectionsButton location={event.location} />
+                    </div>
                   </Row>
                 )}
               </>
             )}
           </div>
+
+          {sessions.length === 1 && canExport(event) && (
+            <AddToCalendar event={event} />
+          )}
         </div>
       </div>
     </div>
