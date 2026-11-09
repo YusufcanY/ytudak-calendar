@@ -70,6 +70,15 @@ function MonthView({
   const weeks = getCalendarWeeks(year, month);
   const today = isoDate(new Date());
   const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const agendaRef = useRef<HTMLElement | null>(null);
+  const scrollToAgenda = useRef(false);
+
+  // After the user taps a day, bring that day's events into view.
+  useEffect(() => {
+    if (!scrollToAgenda.current) return;
+    scrollToAgenda.current = false;
+    agendaRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [selectedIso]);
 
   const selectedDate = parseDate(selectedIso);
   const selectedEvents = getEventsForDate(events, selectedDate);
@@ -153,16 +162,22 @@ function MonthView({
                   key={dayIso}
                   type="button"
                   onClick={() => {
-                    if (isCurrentMonth) onSelectDate(dayIso);
-                    else if (day < new Date(year, month, 1)) {
-                      if (canGoPrev) {
-                        onPrevMonth();
-                        onSelectDate(dayIso);
-                      }
-                    } else if (canGoNext) {
-                      onNextMonth();
-                      onSelectDate(dayIso);
+                    if (isSelected) {
+                      agendaRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "nearest",
+                      });
+                      return;
                     }
+                    const isPrev = day < new Date(year, month, 1);
+                    if (!isCurrentMonth && !(isPrev ? canGoPrev : canGoNext))
+                      return;
+                    scrollToAgenda.current = true;
+                    if (!isCurrentMonth) {
+                      if (isPrev) onPrevMonth();
+                      else onNextMonth();
+                    }
+                    onSelectDate(dayIso);
                   }}
                   aria-label={`${day.getDate()} ${TURKISH_MONTHS[day.getMonth()]}, ${dayEvents.length} etkinlik`}
                   aria-pressed={isSelected}
@@ -203,7 +218,7 @@ function MonthView({
       </div>
 
       {/* Selected day agenda */}
-      <section className="mt-4">
+      <section ref={agendaRef} className="mt-4 scroll-mt-20 scroll-mb-4">
         <h3
           className="font-display font-bold tracking-wide text-base mb-2 px-1"
           style={{ color: "var(--text-primary)" }}
