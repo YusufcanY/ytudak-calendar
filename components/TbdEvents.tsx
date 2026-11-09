@@ -12,7 +12,7 @@ export function TbdEvents({ events, onEventClick }: TbdEventsProps) {
   if (events.length === 0) return null;
 
   return (
-    <section className="mt-16 animate-fadeIn">
+    <section className="mt-10 sm:mt-16 animate-fadeIn">
       <div className="flex items-center gap-3 mb-6">
         <div
           className="h-px flex-1"

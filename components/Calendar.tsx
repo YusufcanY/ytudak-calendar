@@ -49,7 +49,7 @@ export function Calendar({
     <div className="animate-fadeIn">
       {/* Month nav header */}
       <div
-        className="flex items-center justify-between px-4 py-3 rounded-xl mb-2"
+        className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 rounded-xl mb-2"
         style={{
           background: "var(--bg-header)",
           border: "1px solid var(--border)",

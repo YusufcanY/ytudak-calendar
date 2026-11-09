@@ -35,7 +35,7 @@ const NOTES = [
 function ProgramNotes() {
   return (
     <section
-      className="mt-12 rounded-xl p-5"
+      className="mt-8 sm:mt-12 rounded-xl p-4 sm:p-5"
       style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
     >
       <h2
@@ -119,7 +119,7 @@ export default function Page() {
       <TopographicBackground />
       {/* Header */}
       <header
-        className="sticky top-0 z-20 px-4 sm:px-6 py-3"
+        className="sticky top-0 z-20 px-3 sm:px-6 py-3"
         style={{
           background: "rgba(245,243,239,0.92)",
           backdropFilter: "blur(12px)",
@@ -166,7 +166,7 @@ export default function Page() {
       </header>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-3 py-4 sm:px-6 sm:py-8">
         {/* Filters — mobile only */}
         <div className="lg:hidden mb-4">{filters}</div>
         <Legend />
@@ -195,7 +195,7 @@ export default function Page() {
 
       {/* Footer */}
       <footer
-        className="py-6 px-6 text-center"
+        className="py-6 px-3 sm:px-6 text-center"
         style={{
           borderTop: "1px solid var(--border)",
           color: "var(--text-muted)",
