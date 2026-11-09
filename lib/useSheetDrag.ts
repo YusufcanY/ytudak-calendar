@@ -20,16 +20,14 @@ export function useSheetDrag<T extends HTMLElement>(onClose: () => void) {
   });
 
   // Lock background scroll so touches on the sheet don't scroll the page.
+  // Only on <html>: also hiding <body> overflow turns body into its own scroll
+  // container, which un-sticks the sticky header on a scrolled page.
   useEffect(() => {
     const html = document.documentElement;
-    const body = document.body;
-    const prevHtml = html.style.overflow;
-    const prevBody = body.style.overflow;
+    const prev = html.style.overflow;
     html.style.overflow = "hidden";
-    body.style.overflow = "hidden";
     return () => {
-      html.style.overflow = prevHtml;
-      body.style.overflow = prevBody;
+      html.style.overflow = prev;
     };
   }, []);
 
