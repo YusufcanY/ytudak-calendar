@@ -1,0 +1,163 @@
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+@import "tailwindcss";
+
+@theme inline {
+  --font-display: "Barlow Condensed", sans-serif;
+  --font-body: "Barlow", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+:root {
+  --bg-deep: #f5f3ef;
+  --bg-card: #ffffff;
+  --bg-cell: #fafaf7;
+  --bg-cell-hover: #f0ede6;
+  --bg-header: #f8f6f2;
+  --border: #d9d4c9;
+  --border-dim: #e8e4dc;
+
+  --text-primary: #1a1a1a;
+  --text-muted: #7a7265;
+  --text-dim: #b5ad9e;
+
+  --accent: #e8962a;
+  --brand-navy: #1d2b4f;
+  --accent-dim: rgba(232, 150, 42, 0.10);
+  --accent-glow: rgba(232, 150, 42, 0.20);
+
+  /* Event type colors */
+  --ev-teorik: #2b74b8;
+  --ev-teorik-bg: rgba(43, 116, 184, 0.12);
+  --ev-pratik: #1f8f5c;
+  --ev-pratik-bg: rgba(31, 143, 92, 0.12);
+  --ev-sinav: #b83c3c;
+  --ev-sinav-bg: rgba(184, 60, 60, 0.12);
+  --ev-kamp: #7b4fc9;
+  --ev-kamp-bg: rgba(123, 79, 201, 0.12);
+  --ev-sohbet: #c97a00;
+  --ev-sohbet-bg: rgba(201, 122, 0, 0.12);
+  --ev-sunum: #1f8aaa;
+  --ev-sunum-bg: rgba(31, 138, 170, 0.12);
+}
+
+html {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+
+#__next,
+main {
+  position: relative;
+  z-index: 1;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-dim);
+}
+
+@layer utilities {
+  /* Font utilities */
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  /* Event type color utilities */
+  .ev-teorik {
+    color: var(--ev-teorik);
+    background: var(--ev-teorik-bg);
+  }
+  .ev-pratik {
+    color: var(--ev-pratik);
+    background: var(--ev-pratik-bg);
+  }
+  .ev-sinav {
+    color: var(--ev-sinav);
+    background: var(--ev-sinav-bg);
+  }
+  .ev-kamp {
+    color: var(--ev-kamp);
+    background: var(--ev-kamp-bg);
+  }
+  .ev-sohbet {
+    color: var(--ev-sohbet);
+    background: var(--ev-sohbet-bg);
+  }
+  .ev-sunum {
+    color: var(--ev-sunum);
+    background: var(--ev-sunum-bg);
+  }
+
+  .ev-teorik-border {
+    border-left-color: var(--ev-teorik);
+  }
+  .ev-pratik-border {
+    border-left-color: var(--ev-pratik);
+  }
+  .ev-sinav-border {
+    border-left-color: var(--ev-sinav);
+  }
+  .ev-kamp-border {
+    border-left-color: var(--ev-kamp);
+  }
+  .ev-sohbet-border {
+    border-left-color: var(--ev-sohbet);
+  }
+  .ev-sunum-border {
+    border-left-color: var(--ev-sunum);
+  }
+
+  /* Animations */
+  .animate-fadeIn {
+    animation: fadeIn 0.25s ease forwards;
+  }
+  .animate-slideUp {
+    animation: slideUp 0.2s ease forwards;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
