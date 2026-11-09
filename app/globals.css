@@ -173,3 +173,14 @@ main {
     transform: translateY(0);
   }
 }
+
+/* Search input: drop WebKit's native clear button and styling (we render our own ✕). */
+input[type="search"] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  display: none;
+}

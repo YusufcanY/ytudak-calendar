@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import type { YtudakEvent } from "@/types";
 import { getEventColors } from "@/lib/eventColors";
 import { TURKISH_MONTHS } from "@/lib/calendar";
+import { searchEvents, type MatchRange } from "@/lib/search";
 
 interface SearchInputProps {
   events: YtudakEvent[];
@@ -16,24 +17,42 @@ function formatDateShort(event: YtudakEvent): string {
   return `${d} ${TURKISH_MONTHS[m - 1]}`;
 }
 
+function Highlighted({ text, ranges }: { text: string; ranges: MatchRange[] }) {
+  const parts: React.ReactNode[] = [];
+  let cursor = 0;
+  ranges.forEach((r, i) => {
+    if (r.start > cursor) parts.push(text.slice(cursor, r.start));
+    parts.push(
+      <mark
+        key={i}
+        style={{
+          background: "var(--accent-dim)",
+          color: "inherit",
+          fontWeight: 600,
+          borderRadius: "2px",
+        }}
+      >
+        {text.slice(r.start, r.end)}
+      </mark>,
+    );
+    cursor = r.end;
+  });
+  if (cursor < text.length) parts.push(text.slice(cursor));
+  return <>{parts}</>;
+}
+
 export function SearchInput({ events, onSelect }: SearchInputProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listId = useId();
 
-  const results = query.trim()
-    ? events
-        .filter((e) => {
-          const q = query.trim().toLocaleLowerCase("tr");
-          return (
-            e.name.toLocaleLowerCase("tr").includes(q) ||
-            (e.location?.toLocaleLowerCase("tr").includes(q) ?? false)
-          );
-        })
-        .slice(0, 8)
-    : [];
-
-  const showDropdown = open && results.length > 0;
+  const hasQuery = query.trim().length > 0;
+  const results = searchEvents(events, query);
+  const showDropdown = open && hasQuery;
+  const active = Math.min(activeIndex, Math.max(results.length - 1, 0));
 
   useEffect(() => {
     function onMouseDown(e: MouseEvent) {
@@ -52,6 +71,26 @@ export function SearchInput({ events, onSelect }: SearchInputProps) {
     onSelect(event);
     setQuery("");
     setOpen(false);
+    inputRef.current?.blur();
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Escape") {
+      setOpen(false);
+      inputRef.current?.blur();
+      return;
+    }
+    if (!showDropdown || results.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((active + 1) % results.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((active - 1 + results.length) % results.length);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      handleSelect(results[active].event);
+    }
   }
 
   return (
@@ -86,38 +125,60 @@ export function SearchInput({ events, onSelect }: SearchInputProps) {
           ⌕
         </span>
         <input
-          type="text"
-          placeholder="Ara…"
+          ref={inputRef}
+          type="search"
+          inputMode="search"
+          enterKeyHint="search"
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
+          role="combobox"
+          aria-label="Etkinlik ara"
+          aria-expanded={showDropdown}
+          aria-controls={listId}
+          aria-activedescendant={
+            showDropdown && results.length > 0
+              ? `${listId}-${active}`
+              : undefined
+          }
+          placeholder="Etkinlik ara…"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
+            setActiveIndex(0);
             setOpen(true);
           }}
-          onFocus={() => query.trim() && setOpen(true)}
+          onFocus={() => hasQuery && setOpen(true)}
+          onKeyDown={handleKeyDown}
           style={{
             background: "transparent",
             border: "none",
             outline: "none",
             color: "var(--text-primary)",
             fontFamily: "var(--font-body)",
-            fontSize: "13px",
+            // 16px prevents iOS Safari from zooming in on focus.
+            fontSize: "16px",
             width: "100%",
           }}
         />
         {query && (
           <button
+            type="button"
+            aria-label="Aramayı temizle"
             onClick={() => {
               setQuery("");
               setOpen(false);
+              inputRef.current?.focus();
             }}
             style={{
               background: "none",
               border: "none",
               color: "var(--text-dim)",
               cursor: "pointer",
-              fontSize: "12px",
+              fontSize: "14px",
               lineHeight: 1,
-              padding: 0,
+              padding: "8px",
+              margin: "-8px",
               flexShrink: 0,
             }}
           >
@@ -129,6 +190,8 @@ export function SearchInput({ events, onSelect }: SearchInputProps) {
       {/* Dropdown */}
       {showDropdown && (
         <div
+          id={listId}
+          role="listbox"
           style={{
             position: "absolute",
             top: "100%",
@@ -140,37 +203,49 @@ export function SearchInput({ events, onSelect }: SearchInputProps) {
             borderTop: "none",
             borderRadius: "0 0 8px 8px",
             zIndex: 50,
-            overflow: "hidden",
+            maxHeight: "min(60vh, 420px)",
+            overflowY: "auto",
+            overscrollBehavior: "contain",
             boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
           }}
         >
-          {results.map((event, i) => {
+          {results.length === 0 && (
+            <div
+              style={{
+                padding: "12px",
+                fontFamily: "var(--font-body)",
+                fontSize: "13px",
+                color: "var(--text-muted)",
+              }}
+            >
+              “{query.trim()}” için sonuç yok
+            </div>
+          )}
+          {results.map(({ event, ranges }, i) => {
             const colors = getEventColors(event.type);
             return (
               <button
                 key={event.id}
+                id={`${listId}-${i}`}
+                type="button"
+                role="option"
+                aria-selected={i === active}
                 onClick={() => handleSelect(event)}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   gap: "10px",
                   width: "100%",
-                  padding: "9px 12px",
-                  background: "transparent",
+                  padding: "11px 12px",
+                  background:
+                    i === active ? "var(--bg-cell-hover)" : "transparent",
                   border: "none",
                   borderTop: i > 0 ? "1px solid var(--border-dim)" : "none",
                   cursor: "pointer",
                   textAlign: "left",
                   transition: "background 0.1s",
                 }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.background =
-                    "var(--bg-cell-hover)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.background =
-                    "transparent";
-                }}
+                onMouseEnter={() => setActiveIndex(i)}
               >
                 {/* Color dot */}
                 <span
@@ -187,7 +262,7 @@ export function SearchInput({ events, onSelect }: SearchInputProps) {
                 <span
                   style={{
                     fontFamily: "var(--font-body)",
-                    fontSize: "13px",
+                    fontSize: "14px",
                     color: "var(--text-primary)",
                     flex: 1,
                     minWidth: 0,
@@ -196,7 +271,7 @@ export function SearchInput({ events, onSelect }: SearchInputProps) {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {event.name}
+                  <Highlighted text={event.name} ranges={ranges} />
                 </span>
 
                 {/* Campus */}
