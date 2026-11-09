@@ -139,7 +139,7 @@ main {
     animation: slideUp 0.2s ease forwards;
   }
   .animate-sheetUp {
-    animation: sheetUp 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    animation: sheetUp 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 }
 

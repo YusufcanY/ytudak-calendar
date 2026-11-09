@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import type { YtudakEvent } from "@/types";
 import { getEventColors } from "@/lib/eventColors";
+import { useSheetDrag } from "@/lib/useSheetDrag";
 import { TURKISH_MONTHS, parseDate } from "@/lib/calendar";
 import { getSessions } from "@/data/events";
 import { canExport } from "@/lib/calendarExport";
@@ -39,6 +40,7 @@ function formatDateRange(event: YtudakEvent): string {
 
 export function EventModal({ event, onClose }: EventModalProps) {
   const colors = getEventColors(event.type);
+  const sheetRef = useSheetDrag<HTMLDivElement>(onClose);
   const sessions = getSessions(event);
 
   useEffect(() => {
@@ -56,7 +58,8 @@ export function EventModal({ event, onClose }: EventModalProps) {
       onClick={onClose}
     >
       <div
-        className="animate-sheetUp sm:animate-slideUp relative max-w-md w-full max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-xl shadow-2xl pb-[env(safe-area-inset-bottom)]"
+        ref={sheetRef}
+        className="animate-sheetUp sm:animate-slideUp relative max-w-md w-full max-h-[85vh] overflow-y-auto overscroll-contain rounded-t-2xl sm:rounded-xl shadow-2xl pb-[env(safe-area-inset-bottom)]"
         style={{
           background: "var(--bg-card)",
           border: "1px solid var(--border)",
@@ -66,7 +69,7 @@ export function EventModal({ event, onClose }: EventModalProps) {
         {/* Color accent bar */}
         <div className="h-1 w-full" style={{ background: colors.dot }} />
         {/* Grab handle (mobile) */}
-        <div className="sm:hidden flex justify-center pt-2">
+        <div className="sm:hidden flex justify-center pt-2.5 pb-1">
           <span
             className="w-10 h-1 rounded-full"
             style={{ background: "var(--border)" }}
